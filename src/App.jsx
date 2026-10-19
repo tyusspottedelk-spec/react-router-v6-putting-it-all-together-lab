@@ -1,8 +1,32 @@
+import { BrowserRouter, Route, Routes } from "react-router-dom"
+import About from "./pages/About"
+import DirectorCard from "./pages/DirectorCard"
+import DirectorContainer from "./pages/DirectorContainer"
+import DirectorForm from "./pages/DirectorForm"
+import DirectorList from "./pages/DirectorList"
+import ErrorPage from "./pages/ErrorPage"
+import Home from "./pages/Home"
+import MovieCard from "./pages/MovieCard"
+import MovieForm from "./pages/MovieForm"
+
 const App = () => {
     return (
-        <>
-        {/* define all routes here */}
-        </>
+        <BrowserRouter>
+            <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/about" element={<About />} />
+                {/* Parent routes render the matching nested page through their Outlet. */}
+                <Route path="/directors" element={<DirectorContainer />}>
+                    <Route index element={<DirectorList />} />
+                    <Route path="new" element={<DirectorForm />} />
+                    <Route path=":directorId" element={<DirectorCard />}>
+                        <Route path="movies/new" element={<MovieForm />} />
+                        <Route path="movies/:movieId" element={<MovieCard />} />
+                    </Route>
+                </Route>
+                <Route path="*" element={<ErrorPage />} />
+            </Routes>
+        </BrowserRouter>
     )
 }
 

@@ -1,46 +1,47 @@
 import { useState } from "react"
 import { v4 as uuidv4 } from 'uuid'
+import { useNavigate, useOutletContext, useParams } from "react-router-dom"
 
 function MovieForm() {
   const [title, setTitle] = useState("")
   const [time, setTime] = useState("")
   const [genres, setGenres] = useState("")
+  const [error, setError] = useState("")
+  const navigate = useNavigate()
+  const { directorId } = useParams()
+  const { director, updateDirector } = useOutletContext()
 
-  // Replace me
-  const director = null
-  
   if (!director) { return <h2>Director not found.</h2>}
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
+    setError("")
     const newMovie = {
       id: uuidv4(),
       title,
       time: parseInt(time),
-      genres: genres.split(",").map((genre) => genre.trim()),
+      genres: genres.split(",").map((genre) => genre.trim()).filter(Boolean),
     }
-    fetch(`http://localhost:4000/directors/${id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({movies: [...director.movies, newMovie]})
-    })
-    .then(r => {
-      if (!r.ok) { throw new Error("failed to add movie") }
-      return r.json()
-    })
-    .then(data => {
-      console.log(data)
-      // handle context/state changes
-      // navigate to newly created movie page
-    })
-    .catch(console.log)
+    try {
+      const response = await fetch(`http://localhost:4000/directors/${directorId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ movies: [...director.movies, newMovie] })
+      })
+      if (!response.ok) { throw new Error("failed to add movie") }
+      const updatedDirector = await response.json()
+      updateDirector(updatedDirector)
+      navigate(`/directors/${directorId}/movies/${newMovie.id}`)
+    } catch (submitError) {
+      console.error(submitError)
+      setError("Unable to add movie.")
+    }
   }
 
   return (
     <div>
       <h2>Add New Movie</h2>
+      {error && <p role="alert">{error}</p>}
       <form onSubmit={handleSubmit}>
         <input
           type="text"
@@ -70,4 +71,3 @@ function MovieForm() {
 }
 
 export default MovieForm
-
